@@ -16,6 +16,8 @@ import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 
 import java.util.Collection;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "users")
@@ -27,7 +29,9 @@ public class User implements UserDetails {
 
     private String username;
     private String password;
-
+    private String firstName;
+    private String lastName;
+    private int age;
     @Column(name = "email")
     private String email;
 
@@ -55,16 +59,21 @@ public class User implements UserDetails {
     }
 
     @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return roles;
+    }
+    public Set<String> getRolesNames() {
+        return getAuthorities().stream().map(x -> x.getAuthority())
+                .map(x -> x.replaceAll("ROLE_", ""))
+                .collect(Collectors.toSet());
+    }
+
+    @Override
     public String toString() {
         return "User{" +
                 "username='" + username + '\'' +
                 ", email='" + email + '\'' +
                 '}';
-    }
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return roles;
     }
 
     @Override
