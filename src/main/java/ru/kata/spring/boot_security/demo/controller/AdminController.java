@@ -1,79 +1,74 @@
 package ru.kata.spring.boot_security.demo.controller;
 
+import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.ModelAndView;
+import ru.kata.spring.boot_security.demo.dto.UserDTO;
 import ru.kata.spring.boot_security.demo.exception.UserNotFoundException;
-import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
-import ru.kata.spring.boot_security.demo.service.RoleServiceImpl;
-import ru.kata.spring.boot_security.demo.service.UserServiceImpl;
+import ru.kata.spring.boot_security.demo.service.DTOService;
+import ru.kata.spring.boot_security.demo.service.RoleService;
+import ru.kata.spring.boot_security.demo.service.UserService;
+import ru.kata.spring.boot_security.demo.service.impl.entity.UserServiceImpl;
 
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.List;
 
-@RestController
+@Controller
 @RequestMapping("/admin")
 public class AdminController {
-    private final UserServiceImpl userService;
-    private final RoleServiceImpl roleService;
+    private final UserService userService;
+    private final DTOService<User, UserDTO> userDTOService;
+    private final RoleService roleService;
 
-    public AdminController(UserServiceImpl userService, RoleServiceImpl roleService) {
+    public AdminController(UserServiceImpl userService, DTOService<User, UserDTO> userDTOService, RoleService roleService) {
         this.userService = userService;
+        this.userDTOService = userDTOService;
         this.roleService = roleService;
     }
 
     @ModelAttribute
     public void getAttributes(Model model, Principal principal) {
-        User user = userService.loadFullUserByUsername(principal.getName());
-        model.addAttribute("username", userService.loadUserByUsername(principal.getName()).getUsername());
-        model.addAttribute("roles", user.getRolesNames());
-        model.addAttribute("fullRoles", roleService.getAllRoles());
-        model.addAttribute("user", new User());
+        UserDTO currentUser = userDTOService.toDTO(userService.loadUserByUsername(principal.getName()));
+        model.addAttribute("newUser", new UserDTO());
+        model.addAttribute("allUsers", userDTOService.listToDTO(userService.getAllUsers()));
+        model.addAttribute("allRoles", roleService.getAllRolesNamesList());
+        model.addAttribute("currentUser", currentUser);
+        model.addAttribute("currentUserRolls", currentUser.getRoleNames());
     }
     @GetMapping
-    public ModelAndView getAllUsers() {
-        ModelAndView mav = new ModelAndView("admin");
-        mav.addObject("users", userService.getAllUsers());
-        return mav;
+    public String getAllUsers() {
+        return "admin";
     }
 
     @PostMapping("/add")
-    public ModelAndView add(@ModelAttribute User userToSave) {
-        ModelAndView mav = new ModelAndView("redirect:/admin");
-        userService.addUser(userToSave);
-        return mav;
-    }
-    @GetMapping("/{id}")
-    public ResponseEntity<User> find(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.findUser(id));
+    public String add(@ModelAttribute UserDTO userDTO, @RequestParam(name = "roleToNew") String role) {
+        userDTO.getRoleNames().add(role);
+        userService.addUser(userDTOService.toEntity(userDTO));
+        return "redirect:/admin";
     }
     @PostMapping("/update")
-    public ModelAndView update(@ModelAttribute User userToUpdate) {
-        ModelAndView mav = new ModelAndView("redirect:/admin");
-        userService.updateUser(userToUpdate);
-        return mav;
+    public String update(@ModelAttribute UserDTO userDTO, @RequestParam(name = "roleEdit") String role) {
+        userDTO.getRoleNames().add(role);
+        userService.updateUser(userDTOService.toEntity(userDTO));
+        return "redirect:/admin";
     }
 
     @PostMapping("/delete")
-    public ModelAndView delete(@ModelAttribute User userToDelete, @RequestParam Long id) {
-        ModelAndView mav = new ModelAndView("redirect:/admin");
-        userToDelete.setId(id);
-        userService.deleteUser(userToDelete.getId());
-        return mav;
+    public String delete(@ModelAttribute User userDTO) {
+        userService.deleteUser(userDTO.getId());
+        return "redirect:/admin";
     }
 
-    @ExceptionHandler(UserNotFoundException.class)
+    @ExceptionHandler(UserNotFoundException.class) //Не нужен
     public ResponseEntity<?> studentNotFound() {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Student not found");
     }

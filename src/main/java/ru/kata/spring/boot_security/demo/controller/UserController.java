@@ -1,42 +1,38 @@
 package ru.kata.spring.boot_security.demo.controller;
 
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.ModelAndView;
+import ru.kata.spring.boot_security.demo.dto.UserDTO;
 import ru.kata.spring.boot_security.demo.model.User;
-import ru.kata.spring.boot_security.demo.service.UserServiceImpl;
+import ru.kata.spring.boot_security.demo.service.DTOService;
+import ru.kata.spring.boot_security.demo.service.UserService;
 
 import java.security.Principal;
-import java.util.stream.Collectors;
 
-@RestController
+@Controller
 @RequestMapping("/user")
 public class UserController {
 
-    private final UserServiceImpl userService; //Можно ли импортировать сразу имплементацию?
+    private final UserService userService;
+    private final DTOService<User, UserDTO> userDTOService;
 
-    public UserController(UserServiceImpl userService) {
+    public UserController(UserService userService, DTOService<User, UserDTO> userDTOService) {
         this.userService = userService;
+        this.userDTOService = userDTOService;
     }
 
     @ModelAttribute
     public void getAttributes(Model model, Principal principal) {
-        User user = userService.loadFullUserByUsername(principal.getName());
-        model.addAttribute("username", userService.loadUserByUsername(principal.getName()).getUsername());
-        model.addAttribute("roles", user.getRolesNames());; //Можно же проще? Без отдельного метода?
-        model.addAttribute("user", userService.loadFullUserByUsername(principal.getName())); // Тот же вопрос
+        UserDTO currentUser = userDTOService.toDTO(userService.loadUserByUsername(principal.getName()));
+        model.addAttribute("currentUser", currentUser);
+        model.addAttribute("currentUserRolls", currentUser.getRoleNames());
     }
     @GetMapping
-    public ModelAndView getUserPage() {
-        ModelAndView mav = new ModelAndView("user");
-        return mav;
+    public String getUserPage() {
+        return "user";
     }
 
 }

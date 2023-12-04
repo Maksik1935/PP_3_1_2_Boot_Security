@@ -1,10 +1,16 @@
 package ru.kata.spring.boot_security.demo.model;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -14,10 +20,10 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
+import javax.transaction.Transactional;
 
-import java.util.Collection;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -32,48 +38,40 @@ public class User implements UserDetails {
     private String firstName;
     private String lastName;
     private int age;
-    @Column(name = "email")
-    private String email;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
+    @Fetch(FetchMode.JOIN) //Почему не работает с закомментированными интонациями?
+//    @Fetch(FetchMode.SELECT)
+//    @BatchSize(size = 10)
     @JoinTable(
             name = "users_roles",
             joinColumns = @JoinColumn(
                     name = "user_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(
                     name = "role_id", referencedColumnName = "id"))
-    private Collection<Role> roles;
+    private List<Role> roles = new ArrayList<>(); //А как и там и там на HashSet заменить, если хэшкод считается рекурсивно?
 
     public User() {}
 
-    public User(String username, String password, String email) {
+    public User(Long id, String username, String password, String firstName, String lastName, int age, List<Role> roles) {
+        this.id = id;
         this.username = username;
         this.password = password;
-        this.email = email;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.age = age;
+        this.roles = roles;
     }
 
-    public User(String username, String password, Collection<Role> roles) {
+    public User(String username, String password, List<Role> roles) {
         this.username = username;
         this.password = password;
         this.roles = roles;
     }
 
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
+    public List<? extends GrantedAuthority> getAuthorities() {
         return roles;
-    }
-    public Set<String> getRolesNames() {
-        return getAuthorities().stream().map(x -> x.getAuthority())
-                .map(x -> x.replaceAll("ROLE_", ""))
-                .collect(Collectors.toSet());
-    }
-
-    @Override
-    public String toString() {
-        return "User{" +
-                "username='" + username + '\'' +
-                ", email='" + email + '\'' +
-                '}';
     }
 
     @Override
@@ -94,5 +92,12 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "username='" + username + '\'' +
+                '}';
     }
 }

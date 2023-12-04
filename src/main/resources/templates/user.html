@@ -1,17 +1,19 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
 <head>
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <title>Spring Security Example</title>
 </head>
 <body>
 <div class="container-fluid">
     <nav class="navbar bg-dark" th:fragment="header">
         <div class="text-light">
-            <strong><span th:text="${username}"></span></strong>
+            <strong><span th:text="${currentUser.getUsername()}"></span></strong>
             <span> with roles: </span>
-            <span th:text="${roles}"></span>
+            <span th:text="${currentUserRolls}"></span>
         </div>
         <a class="ml-auto nav-link text-secondary" href="/logout">Logout</a>
     </nav>
@@ -21,7 +23,7 @@
                 <a href="/user" class="list-group-item list-group-item-action active">
                     User
                 </a>
-                <th:block th:if="${roles.contains('ADMIN')}">
+                <th:block th:if="${currentUserRolls.contains('ADMIN')}">
                 <a href="/admin" class="list-group-item list-group-item-action">
                     Admin
                 </a>
@@ -45,12 +47,12 @@
                 </thead>
                 <tbody>
                 <tr>
-                    <td th:text="${user.getId()}"></td>
-                    <td th:text="${user.getFirstName()}"></td>
-                    <td th:text="${user.getLastName()}"></td>
-                    <td th:text="${user.getAge()}"></td>
-                    <td th:text="${user.getEmail()}"></td>
-                    <td th:text="${roles}"></td>
+                    <td th:text="${currentUser.getId()}"></td>
+                    <td th:text="${currentUser.getFirstName()}"></td>
+                    <td th:text="${currentUser.getLastName()}"></td>
+                    <td th:text="${currentUser.getAge()}"></td>
+                    <td th:text="${currentUser.getUsername()}"></td>
+                    <td th:text="${currentUserRolls}"></td>
                 </tr>
                 </tbody>
             </table>
