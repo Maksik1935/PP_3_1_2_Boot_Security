@@ -41,8 +41,8 @@ public class AdminRestController {
     //Как прописать ДТО сервис, чтобы оба не вызывать в контроллере? Не переопределять же там все методы userService...
 
     @GetMapping("/get-auth")
-    public ResponseEntity<UserDTO> getAuthorisationUser() {
-        return ResponseEntity.ok(userDTOService.toDTO(userService.loadUserByUsername("admin")));
+    public ResponseEntity<UserDTO> getAuthorisationUser(Principal principal) {
+        return ResponseEntity.ok(userDTOService.toDTO(userService.loadUserByUsername(principal.getName())));
     }
 
     @GetMapping("/get-users")

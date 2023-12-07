@@ -10,7 +10,6 @@ import ru.kata.spring.boot_security.demo.service.DTOService;
 import ru.kata.spring.boot_security.demo.service.UserService;
 
 import java.security.Principal;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/user")
@@ -25,8 +24,8 @@ public class UserRestController {
     }
 
     @GetMapping("/getUserPage")
-    public ResponseEntity<UserDTO> getUserPage() {
-        return ResponseEntity.ok(userDTOService.toDTO(userService.loadUserByUsername("user")));
+    public ResponseEntity<UserDTO> getUserPage(Principal principal) {
+        return ResponseEntity.ok(userDTOService.toDTO(userService.loadUserByUsername(principal.getName())));
     }
 
 }
