@@ -43,19 +43,20 @@ public class SpringBootSecurityDemoApplication {
 			roleService.addRole(role);
 			role = new Role(2L, "ROLE_ADMIN");
 			roleService.addRole(role);
-			UserDTO dto = new UserDTO(1L, "user", encoder.encode("100"), "firstName", "lastName", 20,
+			UserDTO dto = new UserDTO(1L, "user", "100", "firstName", "lastName", 20,
 					new ArrayList<>(List.of("USER")));
 			User user = userDTOService.toEntity(dto);
 			userService.addUser(user);
 
-			dto = new UserDTO(2L, "admin", encoder.encode("100"), "firstName2", "lastName2", 21,
+			dto = new UserDTO(2L, "admin", "100", "firstName2", "lastName2", 21,
 					new ArrayList<>(List.of("ADMIN")));
 			user = userDTOService.toEntity(dto);
 			userService.addUser(user);
-			dto = new UserDTO(3L, "admin2", encoder.encode("100"), "firstName3", "lastName3", 21,
+			dto = new UserDTO(3L, "admin2", "100", "firstName3", "lastName3", 21,
 					new ArrayList<>(List.of("ADMIN")));
 			user = userDTOService.toEntity(dto);
 			userService.addUser(user);
+			userService.updateUser(user);
 		}
 	}
 
